@@ -74,3 +74,33 @@ CREATE TABLE user_events (
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (event_id) REFERENCES events (event_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+DROP TABLE IF EXISTS account_verifications;
+
+CREATE TABLE account_verifications (
+    verification_id     BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id             BIGINT UNSIGNED NOT NULL UNIQUE,
+    url                 VARCHAR(255) NOT NULL UNIQUE,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS password_reset_verifications;
+
+CREATE TABLE password_reset_verifications (
+    reset_id        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT UNSIGNED NOT NULL UNIQUE,
+    url           VARCHAR(255) NOT NULL UNIQUE,
+    expires_at      TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS mfa_verifications;
+
+CREATE TABLE mfa_verifications (
+    mfa_id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT UNSIGNED NOT NULL UNIQUE,
+    code            VARCHAR(10) NOT NULL UNIQUE,
+    expires_at      TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
