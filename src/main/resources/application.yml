@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: secureinvoice
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/secureinvoice
+    username: root
+    password: roottheone
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    jpa:
+      database-platform: org.hibernate.dialect.MySQL8InnoDBDialect
+      generate-ddl: true
+      show-sql: true
+      hibernate:
+        ddl-auto: update
+      properties:
+        hibernate:
+          globally_quoted_identifiers: true
+          dialect: org.hibernate.dialect.MySQL8Dialect
+          format_sql: true
