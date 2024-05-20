@@ -34,12 +34,43 @@ CREATE TABLE roles (
     permission  VARCHAR(255) NOT NULL -- user:read, user:write, user:delete
 );
 
-DROP TABLE IF EXISTS users_roles;
+DROP TABLE IF EXISTS user_roles;
 
-CREATE TABLE users_roles (
+CREATE TABLE user_roles (
+    user_role_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id     BIGINT UNSIGNED NOT NULL,
     role_id     BIGINT UNSIGNED NOT NULL,
-    PRIMARY KEY (user_id, role_id),
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (role_id) REFERENCES roles (role_id) ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+DROP TABLE IF EXISTS events;
+
+CREATE TABLE events (
+    event_id    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    type       VARCHAR(50) NOT NULL UNIQUE CHECK ( type IN (
+                                                            'LOGIN_ATTEMPT',
+                                                            'LOGIN_ATTEMPT_FAILURE',
+                                                            'LOGIN_ATTEMPT_SUCCESS',
+                                                            'PROFILE_UPDATE',
+                                                            'PROFILE_PICTURE_UPDATE',
+                                                            'ROLE_UPDATE',
+                                                            'ACCOUNT_SETTINGS_UPDATE',
+                                                            'PASSWORD_UPDATE',
+                                                            'MFA_UPDATE'
+    )),
+    description VARCHAR(255) NOT NULL
+);
+
+DROP TABLE IF EXISTS user_events;
+
+CREATE TABLE user_events (
+    user_event_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id     BIGINT UNSIGNED NOT NULL,
+    event_id    BIGINT UNSIGNED NOT NULL,
+    device     VARCHAR(100) DEFAULT NULL,
+    ip_address  VARCHAR(50) DEFAULT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (event_id) REFERENCES events (event_id) ON DELETE RESTRICT ON UPDATE CASCADE
 );
