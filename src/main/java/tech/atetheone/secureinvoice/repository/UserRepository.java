@@ -1,7 +1,6 @@
 package tech.atetheone.secureinvoice.repository;
 
 import tech.atetheone.secureinvoice.domain.User;
-
 import java.util.Collection;
 
 public interface UserRepository<T extends User> {
