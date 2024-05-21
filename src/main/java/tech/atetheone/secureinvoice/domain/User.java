@@ -8,7 +8,6 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT;
 
-@Data
 @Getter
 @Setter
 @NoArgsConstructor
