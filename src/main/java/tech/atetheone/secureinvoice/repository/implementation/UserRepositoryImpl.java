@@ -3,6 +3,7 @@ package tech.atetheone.secureinvoice.repository.implementation;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.atetheone.secureinvoice.domain.Role;
 import tech.atetheone.secureinvoice.domain.User;
 import tech.atetheone.secureinvoice.exception.ApiException;
@@ -20,9 +22,12 @@ import tech.atetheone.secureinvoice.repository.RoleRepository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Objects.requireNonNull;
 import static tech.atetheone.secureinvoice.enumeration.RoleType.ROLE_USER;
+import static tech.atetheone.secureinvoice.enumeration.VerificationType.ACCOUNT;
 import static tech.atetheone.secureinvoice.query.UserQuery.*;
 
 @Repository
@@ -32,6 +37,7 @@ public class UserRepositoryImpl implements UserRepository<User> {
   private final NamedParameterJdbcTemplate jdbc;
   private final RoleRepository<Role> roleRepository = null;
   private final BCryptPasswordEncoder passwordEncoder = null;
+  //private final EmailService emailService = null;
 
 
 
@@ -52,24 +58,26 @@ public class UserRepositoryImpl implements UserRepository<User> {
       roleRepository.addRoleToUser(user.getUserId(), ROLE_USER.name());
 
       // send verification url
+      String verificationUrl = getVerificationUrl(UUID.randomUUID().toString(), ACCOUNT.getType());
+
       // save url in verification table
+      jdbc.update(INSERT_ACCOUNT_VERIFICATION_QUERY, Map.of("user_id", user.getUserId(), "url", verificationUrl));
+
       // send email to user with verification url
-      // return user
+      //emailService.sendVerificationUrl(user.getFirstName(), user.getEmail(), verificationUrl, ACCOUNT.getType());
+      user.setEnabled(false);
+      user.setNonLocked(false);
 
+
+      return user;
+
+    } catch (EmptyResultDataAccessException e) {
+      log.error("Empty result error", e);
+      throw new ApiException("No role found by name: " + ROLE_USER.name());
     } catch (Exception e) {
-
+      log.error("Error occurred while saving user to database", e);
+      throw new ApiException("Error occurred while saving user to database"); // don't be specific about the error
     }
-
-    return null;
-  }
-
-  private SqlParameterSource getSqlParameterSource(User user) {
-   return new MapSqlParameterSource()
-            .addValue("firstName", user.getFirstName())
-            .addValue("lastName", user.getLastName())
-           .addValue("email", user.getEmail())
-            .addValue("password", passwordEncoder.encode(user.getPassword()));
-
   }
 
   @Override
@@ -119,5 +127,20 @@ public class UserRepositoryImpl implements UserRepository<User> {
   @Override
   public Boolean deleteById(Long id) {
     return null;
+  }
+
+  private SqlParameterSource getSqlParameterSource(User user) {
+    return new MapSqlParameterSource()
+            .addValue("first_name", user.getFirstName())
+            .addValue("last_name", user.getLastName())
+            .addValue("email", user.getEmail())
+            .addValue("password", passwordEncoder.encode(user.getPassword()));
+
+  }
+
+  private String getVerificationUrl(String key, String type) {
+    return ServletUriComponentsBuilder.fromCurrentContextPath()
+            .path("user/verify/" + type + "/" + key)
+            .toUriString();
   }
 }
