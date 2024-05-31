@@ -71,9 +71,6 @@ public class UserRepositoryImpl implements UserRepository<User> {
 
       return user;
 
-    } catch (EmptyResultDataAccessException e) {
-      log.error("Empty result error", e);
-      throw new ApiException("No role found by name: " + ROLE_USER.name());
     } catch (Exception e) {
       log.error("Error occurred while saving user to database", e);
       throw new ApiException("Error occurred while saving user to database"); // don't be specific about the error
